@@ -12,9 +12,12 @@ on:
 permissions:
   contents: read
 
+# Runs that can deploy (schedule, push, manual) share one queue so two
+# deploys never overlap. Pull request runs only test, so each PR gets its
+# own group and never displaces a pending deploy run (or another PR's run).
 concurrency:
-  group: press-run
-  cancel-in-progress: false
+  group: ${{ github.event_name == 'pull_request' && format('press-pr-{0}', github.event.pull_request.number) || 'press-run' }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
   test:
